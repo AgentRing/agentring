@@ -28,7 +28,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/Agent-Ring/gym-mcp-client"
+Homepage = "https://agentring.ai"
+Documentation = "https://agentring.ai"
 Repository = "https://github.com/Agent-Ring/gym-mcp-client"
 Issues = "https://github.com/Agent-Ring/gym-mcp-client/issues"
 "Author LinkedIn" = "https://www.linkedin.com/in/haggaishachar/"
