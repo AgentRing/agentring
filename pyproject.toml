@@ -4,12 +4,34 @@ version = "0.1.0"
 description = "A unified interface for local and remote Gymnasium environments via gym-mcp-server"
 readme = "README.md"
 requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [
+    { name = "Haggai Shachar" }
+]
+keywords = ["gymnasium", "reinforcement-learning", "mcp", "gym", "agent", "environment"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
 dependencies = [
     "gym-mcp-server",
     "gymnasium>=1.2.1",
     "httpx>=0.28.1",
     "numpy>=2.0.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/Agent-Ring/gym-mcp-client"
+Repository = "https://github.com/Agent-Ring/gym-mcp-client"
+Issues = "https://github.com/Agent-Ring/gym-mcp-client/issues"
+"Author LinkedIn" = "https://www.linkedin.com/in/haggaishachar/"
 
 [build-system]
 requires = ["hatchling"]
