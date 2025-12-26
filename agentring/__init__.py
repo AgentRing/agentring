@@ -68,6 +68,14 @@ def make(
     )
 
 
+# MCP extensions for agent development
+try:
+    from agentring import mcp
+except ImportError:
+    # MCP extensions are optional
+    mcp = None
+
+
 __all__ = [
     "make",
     "spaces",
@@ -79,4 +87,5 @@ __all__ = [
     "error",
     "logger",
     "utils",
+    "mcp",
 ]

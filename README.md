@@ -9,10 +9,12 @@ A unified Python client for working with both local and remote Gymnasium environ
 - 🎮 **Unified API**: Same Gymnasium interface for both local and remote environments
 - 🔄 **Seamless Switching**: Change modes with a single parameter
 - 🌐 **Remote Execution**: Connect to gym-mcp-server instances over HTTP
+- 🤖 **MCP Extensions**: Generic MCP tool generation and agent utilities (SDK-agnostic)
 - 🔧 **Full Compatibility**: Supports all Gymnasium environment types (Box, Discrete, MultiBinary, etc.)
-- 🐍 **Modern Python**: Python 3.12+ with complete type hints
+- 🐍 **Modern Python**: Python 3.10+ with complete type hints
 - 📦 **Easy Setup**: Managed with uv for fast dependency management
-- ✅ **Well Tested**: 19 comprehensive tests (18 passing)
+- 📊 **Result Analysis**: Comprehensive episode statistics and export capabilities
+- ✅ **Well Tested**: 19 core tests + 7 MCP extension test suites
 
 ## Installation
 
@@ -260,6 +262,231 @@ See `CONTRIBUTING.md` for detailed guidelines.
 
 MIT License - see LICENSE file for details.
 
+## MCP Extensions for Agent Development
+
+AgentRing now includes powerful MCP (Model Context Protocol) extensions that dramatically simplify agent development with MCP servers. These extensions provide generic, SDK-agnostic tools and utilities.
+
+### Features
+
+- 🤖 **Generic Tool Factory**: Auto-generate callable tools from MCP servers (works with any agent SDK)
+- 🎯 **SDK Agnostic**: No SDK dependencies - tools are standard Python callables
+- 🚀 **Episode Runner**: Unified episode execution and result collection
+- 🔧 **Format Converters**: Convert tool definitions to JSON Schema, OpenAPI, and SDK-specific formats
+- 🌐 **Multi-Server Support**: Work with multiple MCP servers simultaneously
+- 📊 **Result Analysis**: Comprehensive episode result statistics and export capabilities
+
+### Quick Start
+
+```python
+import agentring.mcp as gym_mcp
+
+# 1. Generate tools from MCP server
+tools = gym_mcp.create_tools("http://localhost:8070")
+# Returns: List of callable Python functions
+
+# 2. Use with any agent SDK
+# Example with CrewAI:
+from crewai import Agent, Task, Crew
+from crewai.tools import tool
+
+@tool
+def reset_env(seed=None):
+    return tools[0](seed=seed)
+
+@tool
+def step_env(action):
+    return tools[1](action=action)
+
+agent = Agent(tools=[reset_env, step_env], ...)
+task = Task(description="Complete the household task", agent=agent)
+crew = Crew(agents=[agent], tasks=[task])
+result = crew.kickoff()
+
+# 3. Or use generic episode runner
+runner = gym_mcp.MCPAgentRunner(tools, your_agent_callable)
+results = runner.run_episodes(episodes=5)
+print(results.summary())
+```
+
+### MCP Tool Factory
+
+The `create_tools()` function automatically discovers available tools from MCP servers and generates callable Python functions:
+
+```python
+# Generate all tools from server
+tools = gym_mcp.create_tools("http://localhost:8070")
+
+# Generate specific tools
+tools = gym_mcp.create_tools("http://localhost:8070", ["reset_env", "step_env"])
+
+# Each tool is a standard callable
+result = tools[0](seed=42)  # Call reset_env
+```
+
+### Episode Runner
+
+Run episodes with any agent interface using the generic runner:
+
+```python
+# Works with any callable agent (sync or async)
+runner = gym_mcp.MCPAgentRunner(tools, agent_callable)
+
+# Run single episode
+result = runner.run_episode(episode_num=1, seed=42)
+
+# Run multiple episodes
+results = runner.run_episodes(num_episodes=10)
+print(f"Success rate: {results.success_percentage:.1f}%")
+```
+
+### Format Converters
+
+Convert tool definitions to various formats for SDK integration:
+
+```python
+from agentring.mcp import formats
+
+# Convert to JSON Schema (OpenAI style)
+json_schema = formats.to_json_schema(tool_definition)
+
+# Convert to OpenAPI spec
+openapi_spec = formats.to_openapi_spec(tool_definition)
+
+# Convert to SDK-specific formats
+crewai_format = formats.to_crewai_tool(tool_definition)
+langchain_format = formats.to_langchain_tool(tool_definition)
+```
+
+### Multi-Server Support
+
+Work with multiple MCP servers:
+
+```python
+multi_client = gym_mcp.MultiServerClient()
+multi_client.add_server("textworld", "http://localhost:8070")
+multi_client.add_server("alfworld", "http://localhost:8090")
+
+# Get tools from all servers
+all_tools = multi_client.get_all_tools()
+
+# Health check all servers
+health = multi_client.health_check_all()
+print(f"Healthy servers: {multi_client.get_healthy_servers()}")
+```
+
+### Agent Templates
+
+Pre-built instruction templates for common agent patterns:
+
+```python
+from agentring.mcp import templates
+
+# Get templates
+text_adventure_prompt = templates.TEXT_ADVENTURE_INSTRUCTIONS
+shopping_prompt = templates.SHOPPING_INSTRUCTIONS
+household_prompt = templates.HOUSEHOLD_INSTRUCTIONS
+
+# Create complete agent configurations
+config = templates.create_text_adventure_config(
+    max_steps=50,
+    custom_instructions="Always examine objects before using them."
+)
+```
+
+### Result Analysis
+
+Comprehensive episode result analysis and export:
+
+```python
+results = runner.run_episodes(episodes=20)
+
+# Statistics
+print(f"Success rate: {results.success_percentage:.1f}%")
+print(f"Average reward: {results.average_reward:.2f}")
+print(f"Average steps: {results.average_steps:.1f}")
+
+# Export results
+results.save_json("results.json")
+results.save_csv("results.csv")
+
+# Filter and analyze
+successful_episodes = results.filter_by_success(successful_only=True)
+high_reward_episodes = results.filter_by_reward(min_reward=1.0)
+```
+
+### SDK Integration Examples
+
+#### With CrewAI
+
+```python
+import agentring.mcp as gym_mcp
+from crewai import Agent, Task, Crew
+from crewai.tools import tool
+
+# Generate tools
+tools = gym_mcp.create_tools("http://localhost:8070")
+
+# Wrap for CrewAI
+@tool
+def reset_env(seed=None):
+    return tools[0](seed=seed)
+
+@tool
+def step_env(action):
+    return tools[1](action=action)
+
+agent = Agent(
+    role="Text Adventure Agent",
+    goal="Complete quests in text worlds",
+    backstory="You excel at solving puzzles and exploring environments.",
+    tools=[reset_env, step_env]
+)
+
+task = Task(description="Find the treasure and escape the dungeon", agent=agent)
+crew = Crew(agents=[agent], tasks=[task])
+result = crew.kickoff()
+```
+
+#### With LangGraph
+
+```python
+import agentring.mcp as gym_mcp
+from langchain_core.tools import tool
+from langgraph import StateGraph
+
+# Generate and wrap tools
+tools = gym_mcp.create_tools("http://localhost:8070")
+
+@tool
+def reset_env(seed=None):
+    return tools[0](seed=seed)
+
+@tool
+def step_env(action):
+    return tools[1](action=action)
+
+# Use in LangGraph workflow
+# ... workflow definition ...
+```
+
+#### With Generic Agent
+
+```python
+import agentring.mcp as gym_mcp
+
+# Generate tools
+tools = gym_mcp.create_tools("http://localhost:8070")
+
+# Define agent as callable
+def my_agent(prompt: str) -> str:
+    # Your agent logic here (LLM call, etc.)
+    return "I'll reset the environment first by calling reset_env()"
+
+# Run episodes
+runner = gym_mcp.MCPAgentRunner(tools, my_agent)
+results = runner.run_episodes(episodes=5)
+```
+
 ## Related Projects
 
 - [gym-mcp-server](https://github.com/haggaishachar/gym-mcp-server) - MCP server for Gymnasium environments
@@ -274,4 +501,4 @@ MIT License - see LICENSE file for details.
 
 ---
 
-**Status**: ✅ Production Ready | **Version**: 0.1.0 | **Python**: 3.12+ | **Tests**: 19 (18 passing)
+**Status**: ✅ Production Ready | **Version**: 0.2.0 | **Python**: 3.10+ | **Tests**: 19 core + 7 MCP extension suites
