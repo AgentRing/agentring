@@ -11,6 +11,21 @@ if TYPE_CHECKING:
 
 __version__ = "0.1.0"
 
+# Import client components
+from agentring.client import (
+    AgentRingClient,
+    AgentRingError,
+    SessionNotFoundError,
+    SessionCompletedError,
+    connect,
+)
+
+# Import MCP factory functions
+from agentring.mcp import (
+    get_openai_agents_mcp_server,
+    get_pydanticai_mcp_server,
+)
+
 # Re-export key gymnasium components for full API compatibility
 spaces = _gym.spaces
 wrappers = _gym.wrappers
@@ -73,6 +88,7 @@ def make(
 
 
 __all__ = [
+    # Gymnasium-compatible API
     "make",
     "spaces",
     "wrappers",
@@ -83,4 +99,13 @@ __all__ = [
     "error",
     "logger",
     "utils",
+    # AgentRing Client
+    "AgentRingClient",
+    "AgentRingError",
+    "SessionNotFoundError",
+    "SessionCompletedError",
+    "connect",
+    # MCP Server Factory Functions
+    "get_openai_agents_mcp_server",
+    "get_pydanticai_mcp_server",
 ]

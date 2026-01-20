@@ -26,6 +26,15 @@ dependencies = [
     "httpx>=0.28.1",
     "numpy>=2.0.0",
     "pygame>=2.6.1",
+    "requests>=2.25.0",
+]
+
+[project.optional-dependencies]
+openai-agents = ["openai-agents>=0.1.0"]
+pydantic-ai = ["pydantic-ai>=0.1.0"]
+all = [
+    "openai-agents>=0.1.0",
+    "pydantic-ai>=0.1.0",
 ]
 
 [project.urls]
